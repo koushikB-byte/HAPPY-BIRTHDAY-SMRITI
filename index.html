@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Birthday Treat Catcher 🎂</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      user-select: none;
+    }
+    h1 {
+      color: #2c3e50;
+      margin: 5px 0;
+      font-size: 22px;
+    }
+    p {
+      color: #555;
+      margin: 0 0 10px 0;
+      font-size: 14px;
+    }
+    #game-container {
+      position: relative;
+      width: 340px;
+      height: 480px;
+      background: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      touch-action: none;
+    }
+    canvas {
+      background: #fafafa;
+      display: block;
+    }
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.96);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .btn {
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(255,107,107,0.3);
+      transition: transform 0.15s ease, background-color 0.2s;
+    }
+    .btn:hover {
+      background: #ee5253;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .score-board {
+      position: absolute;
+      top: 12px;
+      left: 15px;
+      font-weight: bold;
+      color: #333;
+      font-size: 16px;
+    }
+    .voucher-box {
+      background: #fff0f5;
+      padding: 16px;
+      border-radius: 16px;
+      border: 2px dashed #ff6b6b;
+      margin: 10px 0;
+      width: 100%;
+      position: relative;
+    }
+    .button-container {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      position: relative;
+      min-height: 55px;
+      align-items: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎂 Birthday Treat Catcher</h1>
+  <p>Catch 10 treats to unlock your birthday surprise!</p>
+
+  <div id="game-container">
+    <div class="score-board">Score: <span id="score">0</span> / 10</div>
+    <canvas id="gameCanvas" width="340" height="480"></canvas>
+
+    <!-- Start Overlay -->
+    <div id="start-overlay" class="overlay">
+      <h2 style="color: #2c3e50; margin-bottom: 5px;">Ready for the Challenge?</h2>
+      <p style="margin-bottom: 20px;">Drag with your finger or mouse to move the basket left & right!</p>
+      <button class="btn" onclick="startGame()">Start Game 🎮</button>
+    </div>
+
+    <!-- Win Overlay -->
+    <div id="win-overlay" class="overlay hidden">
+      <h2 style="color: #ff6b6b; margin-bottom: 5px;">🎉 Quest Completed!</h2>
+      <p style="margin-top: 0; font-size: 13px;">You caught all 10 treats! Here is your official birthday reward:</p>
+
+      <div class="voucher-box">
+        <strong style="color: #d63384; font-size: 16px;">🎁 Special Birthday Coupon:</strong>
+        <p style="margin: 8px 0; color: #333; font-weight: 600; font-size: 14px;">
+          One free coffee & dessert hangout on me whenever you're free!
+        </p>
+        <p style="font-size: 13px; color: #666; margin-bottom: 5px;">Do you accept this reward?</p>
+
+        <!-- Interactive Choice Buttons -->
+        <div class="button-container">
+          <button id="yes-btn" class="btn" style="margin: 0; width: 90px; background: #2ed573;" onclick="acceptReward()">Yes! ☕</button>
+          <button id="no-btn" class="btn" style="margin: 0; width: 90px; background: #ff4757; position: absolute; right: 25px;" onmouseover="dodgeBtn()" onclick="dodgeBtn()" ontouchstart="dodgeBtn()">No 😜</button>
+        </div>
+      </div>
+
+      <!-- Confirmation message after clicking YES -->
+      <div id="accepted-msg" class="hidden" style="color: #2ed573; font-weight: bold; font-size: 14px; margin-top: 5px;">
+        🎉 Awesome! Choice locked in.<br>Take a screenshot and send it to me! 📸
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let score = 0;
+    let gameRunning = false;
+    let basket = { x: 135, width: 70, height: 20, speed: 7 };
+    let items = [];
+    const itemTypes = ['🍓', '🍰', '🍫', '☕', '🎁', '🎂'];
+
+    // Controls
+    let moveLeft = false, moveRight = false;
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') moveLeft = true;
+      if (e.key === 'ArrowRight') moveRight = true;
+    });
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowLeft') moveLeft = false;
+      if (e.key === 'ArrowRight') moveRight = false;
+    });
+
+    // Touch / Mouse dragging for mobile & desktop
+    canvas.addEventListener('touchmove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const touchX = e.touches[0].clientX - rect.left;
+      basket.x = Math.max(0, Math.min(canvas.width - basket.width, touchX - basket.width / 2));
+    });
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      basket.x = Math.max(0, Math.min(canvas.width - basket.width, mouseX - basket.width / 2));
+    });
+
+    function spawnItem() {
+      if (!gameRunning) return;
+      const x = Math.random() * (canvas.width - 30);
+      const icon = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+      items.push({ x: x, y: -20, speed: 2 + Math.random() * 2, icon: icon });
+      setTimeout(spawnItem, 800);
+    }
+
+    function startGame() {
+      score = 0;
+      items = [];
+      document.getElementById('score').innerText = score;
+      document.getElementById('start-overlay').classList.add('hidden');
+      document.getElementById('win-overlay').classList.add('hidden');
+      document.getElementById('accepted-msg').classList.add('hidden');
+      
+      // Reset No button state
+      const noBtn = document.getElementById('no-btn');
+      noBtn.style.display = 'inline-block';
+      noBtn.style.transform = 'translate(0px, 0px)';
+
+      gameRunning = true;
+      spawnItem();
+      requestAnimationFrame(update);
+    }
+
+    function update() {
+      if (!gameRunning) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (moveLeft && basket.x > 0) basket.x -= basket.speed;
+      if (moveRight && basket.x < canvas.width - basket.width) basket.x += basket.speed;
+
+      // Draw Basket
+      ctx.fillStyle = '#ff6b6b';
+      ctx.beginPath();
+      ctx.roundRect(basket.x, canvas.height - basket.height - 10, basket.width, basket.height, 10);
+      ctx.fill();
+
+      // Update & Draw Items
+      for (let i = items.length - 1; i >= 0; i--) {
+        let item = items[i];
+        item.y += item.speed;
+
+        ctx.font = '24px serif';
+        ctx.fillText(item.icon, item.x, item.y);
+
+        // Check Collision with Basket
+        if (
+          item.y >= canvas.height - basket.height - 25 &&
+          item.y <= canvas.height - 10 &&
+          item.x >= basket.x - 10 &&
+          item.x <= basket.x + basket.width
+        ) {
+          items.splice(i, 1);
+          score++;
+          document.getElementById('score').innerText = score;
+
+          if (score >= 10) {
+            gameRunning = false;
+            document.getElementById('win-overlay').classList.remove('hidden');
+            return;
+          }
+        } else if (item.y > canvas.height) {
+          items.splice(i, 1);
+        }
+      }
+
+      requestAnimationFrame(update);
+    }
+
+    // Dodging "No" Button Logic
+    function dodgeBtn() {
+      const noBtn = document.getElementById('no-btn');
+      const randomX = Math.floor(Math.random() * 140) - 70;
+      const randomY = Math.floor(Math.random() * 80) - 40;
+      noBtn.style.transform = `translate(${randomX}px, ${randomY}px)`;
+    }
+
+    // Action on Clicking "Yes"
+    function acceptReward() {
+      const noBtn = document.getElementById('no-btn');
+      noBtn.style.display = 'none';
+      document.getElementById('accepted-msg').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
