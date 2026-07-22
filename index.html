@@ -123,9 +123,8 @@
       margin-top: 10px;
     }
 
-    /* Style for runaway No button bounded within card */
     #no-btn {
-      transition: transform 0.15s ease-out;
+      transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       z-index: 99;
     }
   </style>
@@ -181,7 +180,8 @@
     let basket = { x: 135, width: 70, height: 20, speed: 7 };
     let items = [];
 
-    const photoFiles = ['photo1.jpg', 'photo2.jpg'];
+    // Preload your 3 uploaded photos from GitHub
+    const photoFiles = ['photo1.jpg', 'photo2.jpg', 'photo3.jpg'];
     const loadedImages = [];
 
     photoFiles.forEach(file => {
@@ -196,7 +196,7 @@
       { type: 'emoji', icon: '🍰', points: 1 },
       { type: 'emoji', icon: '🍓', points: 1 },
       { type: 'emoji', icon: '☕', points: 1 },
-      { type: 'emoji', icon: '⏰', points: -2 }
+      { type: 'emoji', icon: '⏰', points: -2 } // Obstacle!
     ];
 
     let moveLeft = false, moveRight = false;
@@ -329,15 +329,22 @@
       requestAnimationFrame(update);
     }
 
-    // RUNAWAY NO BUTTON (CONFINED INSIDE CARD BOUNDARIES)
+    // SMART BOUNDARY-LOCKED DODGE FUNCTION
     function dodgeBtn(event) {
       if (event) event.preventDefault();
       
       const noBtn = document.getElementById('no-btn');
+      const box = document.querySelector('.voucher-box');
       
-      // Keeps movement strictly within the voucher box (-90px to +60px horizontally, -40px to +40px vertically)
-      const randomX = Math.floor(Math.random() * 110) - 70;
-      const randomY = Math.floor(Math.random() * 30) - 15;
+      const boxRect = box.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+      
+      // Keep button strictly bounded inside voucher card boundaries
+      const maxX = (boxRect.width / 2) - (btnRect.width / 2) - 15;
+      const maxY = (boxRect.height / 2) - (btnRect.height / 2) - 10;
+      
+      const randomX = (Math.random() * (maxX * 2)) - maxX;
+      const randomY = (Math.random() * (maxY * 2)) - maxY;
 
       noBtn.style.transform = `translate(${randomX}px, ${randomY}px)`;
     }
