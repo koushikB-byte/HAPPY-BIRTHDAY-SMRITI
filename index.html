@@ -123,9 +123,9 @@
       margin-top: 10px;
     }
 
-    /* Style for runaway No button with quick dodge movement */
+    /* Style for runaway No button bounded within card */
     #no-btn {
-      transition: transform 0.12s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transition: transform 0.15s ease-out;
       z-index: 99;
     }
   </style>
@@ -329,15 +329,15 @@
       requestAnimationFrame(update);
     }
 
-    // RUNAWAY NO BUTTON (DODGES FARTHER)
+    // RUNAWAY NO BUTTON (CONFINED INSIDE CARD BOUNDARIES)
     function dodgeBtn(event) {
-      if (event) event.preventDefault(); // Prevents default click/tap on mobile
+      if (event) event.preventDefault();
       
       const noBtn = document.getElementById('no-btn');
       
-      // Much larger random range (jumps far across screen)
-      const randomX = (Math.random() > 0.5 ? 1 : -1) * (100 + Math.floor(Math.random() * 120));
-      const randomY = (Math.random() > 0.5 ? 1 : -1) * (80 + Math.floor(Math.random() * 100));
+      // Keeps movement strictly within the voucher box (-90px to +60px horizontally, -40px to +40px vertically)
+      const randomX = Math.floor(Math.random() * 150) - 90;
+      const randomY = Math.floor(Math.random() * 80) - 40;
 
       noBtn.style.transform = `translate(${randomX}px, ${randomY}px)`;
     }
