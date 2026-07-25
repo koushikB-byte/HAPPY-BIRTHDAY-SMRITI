@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Happy Birthday Smriti! 🎂</title>
-  <!-- Confetti Library -->
+  <!-- Canvas Confetti Library -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     * {
@@ -73,17 +73,17 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(255, 255, 255, 0.96);
+      background: rgba(255, 255, 255, 0.97);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 20px;
+      padding: 22px;
       backface-visibility: hidden;
       transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 20;
     }
     
-    /* 3D Card Flip Animation */
     .card-flipped {
       transform: rotateY(360deg);
     }
@@ -93,7 +93,7 @@
       color: white;
       border: none;
       padding: 12px 24px;
-      font-size: 16px;
+      font-size: 15px;
       border-radius: 25px;
       cursor: pointer;
       font-weight: bold;
@@ -127,6 +127,15 @@
       width: 100%;
       position: relative;
     }
+    .wish-box {
+      background: #fff0f5;
+      padding: 18px;
+      border-radius: 16px;
+      border: 1.5px solid #ffccd5;
+      margin: 12px 0 18px 0;
+      width: 100%;
+      text-align: center;
+    }
     .button-container {
       display: flex;
       justify-content: center;
@@ -157,7 +166,7 @@
 <body>
 
   <h1>✨ Smriti's Birthday Quest</h1>
-  <p>Catch 12 treats & photos! <b>Avoid alarms ⏰</b> (-2 pts)</p>
+  <p>Catch 12 treats & photos! Watch out for obstacles!</p>
 
   <div id="game-container">
     <div class="score-board">
@@ -166,14 +175,34 @@
     </div>
     <canvas id="gameCanvas" width="340" height="480"></canvas>
 
-    <!-- Start Overlay -->
-    <div id="start-overlay" class="overlay">
-      <h2 style="color: #d63384; margin-bottom: 5px;">Happy Birthday Smriti! 🎉</h2>
-      <p style="margin-bottom: 20px;">Drag to move the basket. Catch treats & photos, dodge the clocks!</p>
-      <button class="btn" onclick="startGame()">Start Quest 🎮</button>
+    <!-- SCREEN 1: PRE-GAME BIRTHDAY WISH SCREEN -->
+    <div id="wish-overlay" class="overlay">
+      <div style="font-size: 38px; margin-bottom: 5px;">🎂✨</div>
+      <h2 style="color: #d63384; margin: 0 0 8px 0; font-size: 22px;">Happy Birthday Smriti!</h2>
+      
+      <div class="wish-box">
+        <p style="color: #444; font-size: 13.5px; line-height: 1.5; margin: 0;">
+          Wishing you the happiest birthday! 🎉<br><br>
+          Khushi thhak re 
+          ar Sstho o thhak 😅.
+        </p>
+      </div>
+
+      <button class="btn" onclick="goToInstructions()">Unlock Birthday Quest 🎮</button>
     </div>
 
-    <!-- Win Overlay with 3D Flip -->
+    <!-- SCREEN 2: GAME INSTRUCTIONS -->
+    <div id="start-overlay" class="overlay hidden">
+      <h2 style="color: #d63384; margin-bottom: 5px;">How to Play 🕹️</h2>
+      <p style="margin-bottom: 15px; color: #555; line-height: 1.4;">
+        Drag the basket 🧺 to collect treats & photos!<br><br>
+        Reach <b>12 points</b> to claim your birthday coupon.<br>
+        Watch out for exam traps! (-2 points)
+      </p>
+      <button class="btn" onclick="startGame()">Start Game 🚀</button>
+    </div>
+
+    <!-- SCREEN 3: WIN OVERLAY WITH 3D FLIP -->
     <div id="win-overlay" class="overlay hidden">
       <h2 style="color: #d63384; margin-bottom: 2px;">🎉 Quest Cleared!</h2>
       <p style="margin: 0 0 8px 0; font-size: 13px; color: #888;">Time: <strong id="final-time" style="color: #d63384;">0.0s</strong></p>
@@ -194,8 +223,8 @@
 
       <div id="accepted-msg" class="hidden" style="color: #2ed573; font-weight: bold; font-size: 13px; margin-top: 2px;">
         🎉 Choice locked in!<br>
-        <!-- Remember to replace YOUR_PHONE_NUMBER below -->
-        <a id="claim-whatsapp-btn" href="https://wa.me/9547971765?text=Hey!%20I%20beat%20the%20birthday%20game%20in%20record%20time!%20Coffee%20and%20dessert%20coupon%20claimed!%20%E2%98%95%E2%9C%A8" target="_blank">
+        <!-- REPLACE YOUR_PHONE_NUMBER BELOW WITH YOUR ACTUAL NUMBER -->
+        <a id="claim-whatsapp-btn" href="https://wa.me/95479711765?text=Hey!%20I%20beat%20the%20birthday%20game%20in%20record%20time!%20Coffee%20and%20dessert%20coupon%20claimed!%20%E2%98%95%E2%9C%A8" target="_blank">
           Send Proof via WhatsApp 📲
         </a>
       </div>
@@ -219,8 +248,8 @@
     let timerInterval = null;
     let elapsedTime = 0;
 
-    // Photos
-    const photoFiles = ['photo1.jpg', 'photo2.jpg', 'photo3.jpg'];
+    // Preload 4 Birthday Photos
+    const photoFiles = ['photo1.jpg', 'photo2.jpg', 'photo3.jpg', 'photo4.jpg'];
     const loadedImages = [];
     photoFiles.forEach(file => {
       const img = new Image();
@@ -228,13 +257,18 @@
       loadedImages.push(img);
     });
 
+    // Preload Custom Obstacle Image
+    const obstacleImg = new Image();
+    obstacleImg.src = 'obstacle.png';
+
     const gameItems = [
+      { type: 'photo', points: 1 },
       { type: 'photo', points: 1 },
       { type: 'photo', points: 1 },
       { type: 'emoji', icon: '🍰', points: 1 },
       { type: 'emoji', icon: '🍓', points: 1 },
       { type: 'emoji', icon: '☕', points: 1 },
-      { type: 'emoji', icon: '⏰', points: -2 }
+      { type: 'obstacle', points: -2 }
     ];
 
     // Basket Movement Controls
@@ -244,20 +278,26 @@
       const targetX = Math.max(0, Math.min(canvas.width - basket.width, touchX - basket.width / 2));
       basket.x = targetX;
 
-      // Add Sparkle Particle Trail
+      // Sparkle Particle Trail (Stars & Birthday Sparkles)
       if (gameRunning && Math.random() < 0.6) {
+        const symbols = ['✨', '⭐', '💫', '🎉'];
         particles.push({
           x: basket.x + Math.random() * basket.width,
-          y: canvas.height - basket.height - 5,
+          y: canvas.height - 25,
           size: Math.random() * 8 + 6,
           opacity: 1,
-          symbol: Math.random() < 0.5 ? '✨' : '💖'
+          symbol: symbols[Math.floor(Math.random() * symbols.length)]
         });
       }
     }
 
     canvas.addEventListener('touchmove', (e) => updateBasketPos(e.touches[0].clientX));
     canvas.addEventListener('mousemove', (e) => updateBasketPos(e.clientX));
+
+    function goToInstructions() {
+      document.getElementById('wish-overlay').classList.add('hidden');
+      document.getElementById('start-overlay').classList.remove('hidden');
+    }
 
     function triggerHitEffect() {
       document.body.classList.add('hit-flash');
@@ -302,6 +342,7 @@
       document.getElementById('score').innerText = score;
       document.getElementById('timer').innerText = '0.0';
       
+      document.getElementById('wish-overlay').classList.add('hidden');
       document.getElementById('start-overlay').classList.add('hidden');
       const winOverlay = document.getElementById('win-overlay');
       winOverlay.classList.add('hidden');
@@ -348,11 +389,9 @@
         }
       }
 
-      // 2. Draw Basket
-      ctx.fillStyle = '#d63384';
-      ctx.beginPath();
-      ctx.roundRect(basket.x, canvas.height - basket.height - 10, basket.width, basket.height, 10);
-      ctx.fill();
+      // 2. Draw Basket (Emoji Basket Style)
+      ctx.font = '60px serif';
+      ctx.fillText('🧺', basket.x, canvas.height - 10);
 
       // 3. Update & Draw Falling Items
       for (let i = items.length - 1; i >= 0; i--) {
@@ -365,6 +404,13 @@
           ctx.roundRect(item.x, item.y, 42, 42, 8);
           ctx.clip();
           ctx.drawImage(item.img, item.x, item.y, 42, 42);
+          ctx.restore();
+        } else if (item.type === 'obstacle' && obstacleImg.complete) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.roundRect(item.x, item.y, 42, 42, 8);
+          ctx.clip();
+          ctx.drawImage(obstacleImg, item.x, item.y, 42, 42);
           ctx.restore();
         } else {
           ctx.font = '28px serif';
@@ -380,7 +426,7 @@
         ) {
           if (item.points < 0) {
             triggerHitEffect();
-            addFloatingPopup('-2! ⏰', item.x, item.y, '#ff4757');
+            addFloatingPopup('-2! 💥', item.x, item.y, '#ff4757');
           } else {
             addFloatingPopup('+1! ✨', item.x, item.y, '#2ed573');
           }
