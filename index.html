@@ -272,10 +272,16 @@
           <span style="font-size: 11.5px; color: #666; font-weight: normal;">(Or you can trade it for a chill local hangout!)</span>
         </p>
 
-        <!-- Choice Buttons -->
-        <div class="button-container">
-          <button id="yes-btn" class="btn" style="margin: 0; width: 90px; background: #2ed573;" onclick="acceptReward()">Yes! 💖</button>
-          <button id="no-btn" class="btn" style="margin: 0; width: 90px; background: #ff4757; position: absolute; right: 25px;" onmouseover="dodgeBtn()" onclick="dodgeBtn()" ontouchstart="dodgeBtn(event)">No 😜</button>
+        <!-- Wrapper for pre-choice text & buttons so they hide together -->
+        <div id="choice-wrapper">
+          <p style="margin: 8px 0 2px 0; font-size: 13px; color: #d63384; font-weight: bold; text-align: center;">Do you accept this reward ? 😌</p>
+          <p style="margin: 0 0 8px 0; font-size: 11px; color: #888; font-style: italic; text-align: center;">Choose wisely <i>(or just click Yes!)</i> 😉</p>
+
+          <!-- Choice Buttons -->
+          <div class="button-container">
+            <button id="yes-btn" class="btn" style="margin: 0; width: 90px; background: #2ed573;" onclick="acceptReward()">Yes! 💖</button>
+            <button id="no-btn" class="btn" style="margin: 0; width: 90px; background: #ff4757; position: absolute; right: 25px;" onmouseover="dodgeBtn()" onclick="dodgeBtn()" ontouchstart="dodgeBtn(event)">No 😜</button>
+          </div>
         </div>
       </div>
 
@@ -427,6 +433,7 @@
       winOverlay.classList.add('hidden');
       winOverlay.classList.remove('card-flipped');
       document.getElementById('accepted-msg').classList.add('hidden');
+      document.getElementById('choice-wrapper').style.display = 'block';
       
       const noBtn = document.getElementById('no-btn');
       noBtn.style.display = 'inline-block';
@@ -569,8 +576,7 @@
     }
 
     function acceptReward() {
-      document.getElementById('yes-btn').style.display = 'none';
-      document.getElementById('no-btn').style.display = 'none';
+      document.getElementById('choice-wrapper').style.display = 'none';
       document.getElementById('accepted-msg').classList.remove('hidden');
 
       confetti({
