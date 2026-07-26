@@ -136,7 +136,36 @@
       margin: 12px 0 18px 0;
       width: 100%;
       text-align: center;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+
+    /* Typewriter Cursor Styling */
+    #typewriter-text {
+      color: #444;
+      font-size: 13.5px;
+      line-height: 1.6;
+      margin: 0;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: 600;
+      white-space: pre-wrap;
+    }
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 14px;
+      background-color: #d63384;
+      margin-left: 2px;
+      animation: blink 0.7s infinite;
+      vertical-align: middle;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
     .rules-list {
       margin-bottom: 15px;
       color: #555;
@@ -203,13 +232,14 @@
       <h2 style="color: #d63384; margin: 0 0 8px 0; font-size: 22px;">Happy Birthday Smriti!</h2>
       
       <div class="wish-box">
-        <p style="color: #444; font-size: 13.5px; line-height: 1.5; margin: 0;">
-          Wishing you the happiest birthday! 🎉<br><br>
-          Khushi thhak re ar Sustho o thhak 😅.
-        </p>
+        <p id="typewriter-text"><span id="type-content"></span><span class="cursor" id="type-cursor"></span></p>
       </div>
 
-      <button class="btn" onclick="goToInstructions()">Unlock Birthday Quest 🎮</button>
+      <!-- Interaction Button to Trigger Typewriter -->
+      <button id="open-note-btn" class="btn" onclick="revealBirthdayNote()">Open Birthday Note ✉️</button>
+      
+      <!-- Next Button (Initially Hidden) -->
+      <button id="quest-btn" class="btn hidden" onclick="goToInstructions()">Unlock Birthday Quest 🎮</button>
     </div>
 
     <!-- SCREEN 2: GAME INSTRUCTIONS WITH OBSTACLE PREVIEW -->
@@ -274,6 +304,29 @@
     let startTime = 0;
     let timerInterval = null;
     let elapsedTime = 0;
+
+    // Typewriter Message
+    const birthdayMessage = "Wishing you the happiest birthday! 🎉\n\nKhushi thhak re ar Sutho o thhak 😅.";
+    let typeIndex = 0;
+
+    function revealBirthdayNote() {
+      document.getElementById('open-note-btn').classList.add('hidden');
+      typeIndex = 0;
+      document.getElementById('type-content').innerText = "";
+      typeWriter();
+    }
+
+    function typeWriter() {
+      if (typeIndex < birthdayMessage.length) {
+        document.getElementById('type-content').innerText += birthdayMessage.charAt(typeIndex);
+        typeIndex++;
+        setTimeout(typeWriter, 45); // Adjust typing speed here
+      } else {
+        // Show next button when finished
+        document.getElementById('type-cursor').style.display = 'none';
+        document.getElementById('quest-btn').classList.remove('hidden');
+      }
+    }
 
     // Preload 5 Birthday Photos
     const photoFiles = ['photo1.jpg', 'photo2.jpg', 'photo3.jpg', 'photo4.jpg', 'photo5.jpg'];
