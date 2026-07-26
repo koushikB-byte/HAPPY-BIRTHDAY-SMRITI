@@ -119,14 +119,29 @@
       border-radius: 12px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
+    .voucher-container {
+      position: relative;
+      width: 100%;
+      margin: 10px 0;
+    }
     .voucher-box {
       background: #fff0f5;
       padding: 16px;
       border-radius: 16px;
       border: 2px dashed #d63384;
-      margin: 10px 0;
       width: 100%;
       position: relative;
+    }
+    #scratch-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      z-index: 30;
+      cursor: pointer;
+      touch-action: none;
     }
     .wish-box {
       background: #fff0f5;
@@ -260,28 +275,33 @@
       <button class="btn" onclick="startGame()">Start Game 🚀</button>
     </div>
 
-    <!-- SCREEN 3: WIN OVERLAY WITH 3D FLIP -->
+    <!-- SCREEN 3: WIN OVERLAY WITH SCRATCH CARD -->
     <div id="win-overlay" class="overlay hidden">
       <h2 style="color: #d63384; margin-bottom: 2px;">🎉 Quest Cleared!</h2>
       <p style="margin: 0 0 8px 0; font-size: 13px; color: #888;">Time: <strong id="final-time" style="color: #d63384;">0.0s</strong></p>
 
-      <div class="voucher-box">
-        <strong style="color: #d63384; font-size: 15px;">🎁 Official Birthday Reward:</strong>
-        <p style="margin: 6px 0; color: #333; font-weight: 600; font-size: 13px; line-height: 1.4;">
-          A trip to the hills for chai, cold mountain air, and good views! Whenever you like ⛰️✨<br>
-          <span style="font-size: 11.5px; color: #666; font-weight: normal;">(Or you can trade it for a chill local hangout!)</span>
-        </p>
+      <div class="voucher-container">
+        <!-- Scratch Surface Canvas -->
+        <canvas id="scratch-canvas"></canvas>
 
-        <!-- Wrapper for pre-choice text & buttons so they hide together -->
-        <div id="choice-wrapper">
-          <p style="margin: 8px 0 2px 0; font-size: 13px; color: #d63384; font-weight: bold; text-align: center;">Do you accept this reward ? 😌</p>
-          <p style="margin: 0 0 8px 0; font-size: 11px; color: #888; font-style: italic; text-align: center;">Choose wisely <i>(or just click Yes!)</i> 😉</p>
+        <div class="voucher-box">
+          <strong style="color: #d63384; font-size: 15px;">🎁 Official Birthday Reward:</strong>
+          <p style="margin: 6px 0; color: #333; font-weight: 600; font-size: 13px; line-height: 1.4;">
+            A trip to the hills for chai, cold mountain air, and good views! Whenever you like ⛰️✨<br>
+            <span style="font-size: 11.5px; color: #666; font-weight: normal;">(Or you can trade it for a chill local hangout!)</span>
+          </p>
+        </div>
+      </div>
 
-          <!-- Choice Buttons -->
-          <div class="button-container">
-            <button id="yes-btn" class="btn" style="margin: 0; width: 90px; background: #2ed573;" onclick="acceptReward()">Yes! 💖</button>
-            <button id="no-btn" class="btn" style="margin: 0; width: 90px; background: #ff4757; position: absolute; right: 25px;" onmouseover="dodgeBtn()" onclick="dodgeBtn()" ontouchstart="dodgeBtn(event)">No 😜</button>
-          </div>
+      <!-- Wrapper for pre-choice text & buttons (Initially hidden until card is scratched) -->
+      <div id="choice-wrapper" class="hidden" style="width: 100%;">
+        <p style="margin: 8px 0 2px 0; font-size: 13px; color: #d63384; font-weight: bold; text-align: center;">Do you accept this reward ? 😌</p>
+        <p style="margin: 0 0 8px 0; font-size: 11px; color: #888; font-style: italic; text-align: center;">Choose wisely <i>(or just click Yes!)</i> 😉</p>
+
+        <!-- Choice Buttons -->
+        <div class="button-container">
+          <button id="yes-btn" class="btn" style="margin: 0; width: 90px; background: #2ed573;" onclick="acceptReward()">Yes! 💖</button>
+          <button id="no-btn" class="btn" style="margin: 0; width: 90px; background: #ff4757; position: absolute; right: 25px;" onmouseover="dodgeBtn()" onclick="dodgeBtn()" ontouchstart="dodgeBtn(event)">No 😜</button>
         </div>
       </div>
 
@@ -433,7 +453,7 @@
       winOverlay.classList.add('hidden');
       winOverlay.classList.remove('card-flipped');
       document.getElementById('accepted-msg').classList.add('hidden');
-      document.getElementById('choice-wrapper').style.display = 'block';
+      document.getElementById('choice-wrapper').classList.add('hidden');
       
       const noBtn = document.getElementById('no-btn');
       noBtn.style.display = 'inline-block';
@@ -525,7 +545,10 @@
             const winOverlay = document.getElementById('win-overlay');
             winOverlay.classList.remove('hidden');
             
-            setTimeout(() => winOverlay.classList.add('card-flipped'), 50);
+            setTimeout(() => {
+              winOverlay.classList.add('card-flipped');
+              initScratchCard();
+            }, 50);
 
             confetti({
               particleCount: 150,
@@ -555,6 +578,89 @@
       }
 
       requestAnimationFrame(update);
+    }
+
+    // --- SCRATCH CARD LOGIC ---
+    let isScratching = false;
+    let scratchCleared = false;
+
+    function initScratchCard() {
+      const sCanvas = document.getElementById('scratch-canvas');
+      const sCtx = sCanvas.getContext('2d');
+      const box = document.querySelector('.voucher-box');
+      
+      sCanvas.width = box.offsetWidth;
+      sCanvas.height = box.offsetHeight;
+      sCanvas.style.display = 'block';
+      scratchCleared = false;
+
+      // Draw Silver Foil Overlay
+      sCtx.fillStyle = '#C0C0C0';
+      sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
+
+      // Add Silver Metallic Pattern Details
+      sCtx.fillStyle = '#D3D3D3';
+      for (let i = 0; i < sCanvas.height; i += 8) {
+        sCtx.fillRect(0, i, sCanvas.width, 4);
+      }
+
+      // Add Text Prompt on Top
+      sCtx.fillStyle = '#d63384';
+      sCtx.font = 'bold 16px Segoe UI';
+      sCtx.textAlign = 'center';
+      sCtx.fillText('Scratch here! ✨', sCanvas.width / 2, sCanvas.height / 2 + 5);
+
+      function getScratchPos(e) {
+        const rect = sCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: clientX - rect.left,
+          y: clientY - rect.top
+        };
+      }
+
+      function scratch(e) {
+        if (!isScratching || scratchCleared) return;
+        const pos = getScratchPos(e);
+        sCtx.globalCompositeOperation = 'destination-out';
+        sCtx.beginPath();
+        sCtx.arc(pos.x, pos.y, 22, 0, Math.PI * 2);
+        sCtx.fill();
+        checkScratchPercentage();
+      }
+
+      function checkScratchPercentage() {
+        if (scratchCleared) return;
+        const imgData = sCtx.getImageData(0, 0, sCanvas.width, sCanvas.height);
+        let pixels = imgData.data;
+        let transparentPixels = 0;
+
+        for (let i = 3; i < pixels.length; i += 4) {
+          if (pixels[i] === 0) transparentPixels++;
+        }
+
+        const percentage = (transparentPixels / (pixels.length / 4)) * 100;
+
+        // Auto reveal when 40% scratched
+        if (percentage > 40) {
+          scratchCleared = true;
+          sCanvas.style.transition = 'opacity 0.4s ease';
+          sCanvas.style.opacity = '0';
+          setTimeout(() => {
+            sCanvas.style.display = 'none';
+            document.getElementById('choice-wrapper').classList.remove('hidden');
+          }, 400);
+        }
+      }
+
+      sCanvas.onmousedown = (e) => { isScratching = true; scratch(e); };
+      sCanvas.onmousemove = scratch;
+      sCanvas.onmouseup = () => { isScratching = false; };
+
+      sCanvas.ontouchstart = (e) => { isScratching = true; scratch(e); };
+      sCanvas.ontouchmove = scratch;
+      sCanvas.ontouchend = () => { isScratching = false; };
     }
 
     function dodgeBtn(event) {
