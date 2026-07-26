@@ -137,6 +137,27 @@
       width: 100%;
       text-align: center;
     }
+    .rules-list {
+      margin-bottom: 15px;
+      color: #555;
+      line-height: 1.8;
+      text-align: left;
+      font-size: 13px;
+      width: 100%;
+    }
+    .rule-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .rule-icon-img {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      object-fit: cover;
+      vertical-align: middle;
+    }
     .button-container {
       display: flex;
       justify-content: center;
@@ -191,16 +212,21 @@
       <button class="btn" onclick="goToInstructions()">Unlock Birthday Quest 🎮</button>
     </div>
 
-    <!-- SCREEN 2: GAME INSTRUCTIONS -->
+    <!-- SCREEN 2: GAME INSTRUCTIONS WITH OBSTACLE PREVIEW -->
     <div id="start-overlay" class="overlay hidden">
-      <h2 style="color: #d63384; margin-bottom: 5px;">How to Play 🕹️</h2>
-      <p style="margin-bottom: 15px; color: #555; line-height: 1.5; text-align: left; font-size: 13px;">
-        Drag the basket 🧺 to collect items!<br><br>
-        📸 <b>Photos:</b> +2 Points<br>
-        🍰 <b>Treats:</b> +1 Point<br>
-        ⚠️ <b>Exam Traps:</b> -1 Point<br><br>
-        Reach <b>24 points</b> to claim your birthday coupon!
-      </p>
+      <h2 style="color: #d63384; margin-bottom: 10px;">How to Play 🕹️</h2>
+      
+      <div class="rules-list">
+        <div>Drag the basket 🧺 to collect items!</div><br>
+        <div class="rule-item">📸 <b>Photos:</b> +2 Points</div>
+        <div class="rule-item">🍰 <b>Treats:</b> +1 Point</div>
+        <div class="rule-item">
+          <img src="obstacle.png" class="rule-icon-img" alt="obstacle" onerror="this.style.display='none'"> 
+          <b>Traps/Obstacles:</b> -1 Point
+        </div><br>
+        <div>Reach <b>24 points</b> to claim your birthday coupon!</div>
+      </div>
+
       <button class="btn" onclick="startGame()">Start Game 🚀</button>
     </div>
 
