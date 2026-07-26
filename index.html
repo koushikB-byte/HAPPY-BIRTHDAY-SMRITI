@@ -222,7 +222,7 @@
         <div class="rule-item">🍰 <b>Treats:</b> +1 Point</div>
         <div class="rule-item">
           <img src="obstacle.png" class="rule-icon-img" alt="obstacle" onerror="this.style.display='none'"> 
-          <b>Traps/Obstacles:</b> -1 Point
+          <b>Traps/Obstacles:</b> -3 Points
         </div><br>
         <div>Reach <b>24 points</b> to claim your birthday coupon!</div>
       </div>
@@ -295,7 +295,7 @@
       { type: 'emoji', icon: '🍰', points: 1 },
       { type: 'emoji', icon: '🍓', points: 1 },
       { type: 'emoji', icon: '☕', points: 1 },
-      { type: 'obstacle', points: -1 }
+      { type: 'obstacle', points: -3 }
     ];
 
     // Basket Movement Controls
@@ -453,7 +453,7 @@
         ) {
           if (item.points < 0) {
             triggerHitEffect();
-            addFloatingPopup('-1! 💥', item.x, item.y, '#ff4757');
+            addFloatingPopup('-3! 💥', item.x, item.y, '#ff4757');
           } else {
             addFloatingPopup(`+${item.points}! ✨`, item.x, item.y, '#2ed573');
           }
