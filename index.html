@@ -148,7 +148,7 @@
       padding: 18px;
       border-radius: 16px;
       border: 1.5px solid #ffccd5;
-      margin: 8px 0 12px 0;
+      margin: 12px 0 18px 0;
       width: 100%;
       text-align: center;
       min-height: 100px;
@@ -163,20 +163,22 @@
       font-size: 13.5px;
       line-height: 1.6;
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Courier New', Courier, monospace;
       font-weight: 600;
       white-space: pre-wrap;
     }
-    .type-pen {
+    .cursor {
       display: inline-block;
+      width: 2px;
+      height: 14px;
+      background-color: #d63384;
       margin-left: 2px;
-      font-size: 14px;
-      animation: writingPulse 0.4s infinite alternate;
+      animation: blink 0.7s infinite;
       vertical-align: middle;
     }
-    @keyframes writingPulse {
-      0% { transform: translateY(0) rotate(0deg); }
-      100% { transform: translateY(-2px) rotate(-10deg); }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
     }
 
     .rules-list {
@@ -210,7 +212,7 @@
       margin-top: 10px;
     }
     #no-btn {
-      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       z-index: 99;
     }
     #claim-whatsapp-btn {
@@ -245,14 +247,8 @@
       <h2 style="color: #d63384; margin: 0 0 8px 0; font-size: 22px;">Happy Birthday Smriti!</h2>
       
       <div class="wish-box">
-        <p id="typewriter-text">
-          <span id="type-placeholder" style="color: #999; font-style: italic; font-weight: normal;">Click the button below to unseal your birthday message 💌</span>
-          <span id="type-content"></span><span class="type-pen hidden" id="type-cursor">✍️</span>
-        </p>
+        <p id="typewriter-text"><span id="type-content"></span><span class="cursor" id="type-cursor"></span></p>
       </div>
-
-      <!-- Helper prompt text -->
-      <p id="click-hint" style="font-size: 12px; color: #888; margin: 2px 0 8px 0; font-weight: 500;">Tap below to read your birthday note 👇</p>
 
       <!-- Interaction Button to Trigger Typewriter -->
       <button id="open-note-btn" class="btn" onclick="revealBirthdayNote()">Open Birthday Note ✉️</button>
@@ -280,7 +276,7 @@
     </div>
 
     <!-- SCREEN 3: WIN OVERLAY WITH SCRATCH CARD -->
-    <div id="win-overlay" class="overlay">
+    <div id="win-overlay" class="overlay hidden">
       <h2 style="color: #d63384; margin-bottom: 2px;">🎉 Quest Cleared!</h2>
       <p style="margin: 0 0 8px 0; font-size: 13px; color: #888;">Time: <strong id="final-time" style="color: #d63384;">0.0s</strong></p>
 
@@ -342,9 +338,6 @@
 
     function revealBirthdayNote() {
       document.getElementById('open-note-btn').classList.add('hidden');
-      document.getElementById('click-hint').classList.add('hidden');
-      document.getElementById('type-placeholder').classList.add('hidden');
-      document.getElementById('type-cursor').classList.remove('hidden');
       typeIndex = 0;
       document.getElementById('type-content').innerText = "";
       typeWriter();
@@ -356,7 +349,7 @@
         typeIndex++;
         setTimeout(typeWriter, 45);
       } else {
-        document.getElementById('type-cursor').classList.add('hidden');
+        document.getElementById('type-cursor').style.display = 'none';
         document.getElementById('quest-btn').classList.remove('hidden');
       }
     }
@@ -674,20 +667,16 @@
       if (event) event.preventDefault();
       
       const noBtn = document.getElementById('no-btn');
-      const overlay = document.getElementById('win-overlay');
+      const box = document.querySelector('.voucher-box');
       
-      const overlayRect = overlay.getBoundingClientRect();
+      const boxRect = box.getBoundingClientRect();
       const btnRect = noBtn.getBoundingClientRect();
       
-      // Calculate max distance button can jump in any direction within the overlay screen
-      const minX = - (overlayRect.width / 2) + (btnRect.width / 2) + 20;
-      const maxX = (overlayRect.width / 2) - (btnRect.width / 2) - 20;
+      const maxX = (boxRect.width / 2) - (btnRect.width / 2) - 15;
+      const maxY = (boxRect.height / 2) - (btnRect.height / 2) - 10;
       
-      const minY = -120; // Jump up across voucher space
-      const maxY = 100;  // Jump down toward bottom screen
-
-      const randomX = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
-      const randomY = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+      const randomX = (Math.random() * (maxX * 2)) - maxX;
+      const randomY = (Math.random() * (maxY * 2)) - maxY;
 
       noBtn.style.transform = `translate(${randomX}px, ${randomY}px)`;
     }
